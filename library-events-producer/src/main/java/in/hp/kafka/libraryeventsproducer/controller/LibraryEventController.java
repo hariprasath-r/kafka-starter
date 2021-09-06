@@ -1,6 +1,7 @@
 package in.hp.kafka.libraryeventsproducer.controller;
 
 import in.hp.kafka.libraryeventsproducer.entity.LibraryEvent;
+import in.hp.kafka.libraryeventsproducer.entity.LibraryEventType;
 import in.hp.kafka.libraryeventsproducer.producer.LibraryEventProducer;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ public class LibraryEventController {
     @PostMapping("/sync")
     public ResponseEntity<LibraryEvent> createBookSync(@RequestBody LibraryEvent libraryEvent) {
         log.info("Received data to publish.");
+        libraryEvent.setLibraryEventType(LibraryEventType.NEW);
         libraryEventProducer.sendEventSync(libraryEvent);
         log.info("Data published.");
         return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
@@ -32,6 +34,7 @@ public class LibraryEventController {
     @PostMapping("/async")
     public ResponseEntity<LibraryEvent> createBookAsync(@RequestBody LibraryEvent libraryEvent) {
         log.info("Received data to publish.");
+        libraryEvent.setLibraryEventType(LibraryEventType.NEW);
         CompletableFuture.runAsync(() -> libraryEventProducer.sendEventAsyncV1(libraryEvent));
         log.info("Data published.");
         return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
