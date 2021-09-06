@@ -5,11 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import in.hp.kafka.libraryeventsproducer.entity.Book;
 import in.hp.kafka.libraryeventsproducer.entity.LibraryEvent;
 import lombok.extern.log4j.Log4j2;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -23,6 +27,8 @@ public class LibraryEventProducer {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    private final String TOPIC = "library-events";
 
     /**
      * Synchronous approach. Since we are using get() in a Future the thread will wait to complete
@@ -51,6 +57,20 @@ public class LibraryEventProducer {
         kafkaTemplate
                 .sendDefault(key, toJson(value))
                 .addCallback(new SendResultCustomCallback());
+    }
+
+    public void sendEventAsyncV1(LibraryEvent libraryEvent) {
+        var key = libraryEvent.getEventId();
+        var value = libraryEvent.getBook();
+        log.info("Sending key: {}, value: {}", key, value);
+        kafkaTemplate
+                .send(buildProducerRecord(key, value))
+                .addCallback(new SendResultCustomCallback());
+    }
+
+    private ProducerRecord<Integer, String> buildProducerRecord(Integer key, Book value) {
+        Iterable<Header> headers = List.of(new RecordHeader("event-source", "test-event-source".getBytes()));
+        return new ProducerRecord<>(TOPIC, null, key, toJson(value), headers);
     }
 
     private String toJson(Book book) {

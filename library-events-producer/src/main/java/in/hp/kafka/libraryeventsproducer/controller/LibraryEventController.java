@@ -32,7 +32,7 @@ public class LibraryEventController {
     @PostMapping("/async")
     public ResponseEntity<LibraryEvent> createBookAsync(@RequestBody LibraryEvent libraryEvent) {
         log.info("Received data to publish.");
-        CompletableFuture.runAsync(() -> libraryEventProducer.sendEventAsync(libraryEvent));
+        CompletableFuture.runAsync(() -> libraryEventProducer.sendEventAsyncV1(libraryEvent));
         log.info("Data published.");
         return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
     }
