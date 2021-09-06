@@ -21,18 +21,18 @@ public class LibraryEventController {
     @Autowired
     private LibraryEventProducer libraryEventProducer;
 
-    @PostMapping("/async")
-    public ResponseEntity<LibraryEvent> createBook(@RequestBody LibraryEvent libraryEvent) {
-        log.info("Received data to publish.");
-        CompletableFuture.runAsync(() -> libraryEventProducer.sendEventAsync(libraryEvent));
-        log.info("Data published.");
-        return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
-    }
-
     @PostMapping("/sync")
     public ResponseEntity<LibraryEvent> createBookSync(@RequestBody LibraryEvent libraryEvent) {
         log.info("Received data to publish.");
         libraryEventProducer.sendEventSync(libraryEvent);
+        log.info("Data published.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
+    }
+
+    @PostMapping("/async")
+    public ResponseEntity<LibraryEvent> createBookAsync(@RequestBody LibraryEvent libraryEvent) {
+        log.info("Received data to publish.");
+        CompletableFuture.runAsync(() -> libraryEventProducer.sendEventAsync(libraryEvent));
         log.info("Data published.");
         return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
     }

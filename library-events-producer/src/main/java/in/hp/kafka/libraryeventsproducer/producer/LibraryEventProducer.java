@@ -25,18 +25,6 @@ public class LibraryEventProducer {
     private ObjectMapper objectMapper;
 
     /**
-     * Complete Async Approach
-     */
-    public void sendEventAsync(LibraryEvent libraryEvent) {
-        var key = libraryEvent.getEventId();
-        var value = libraryEvent.getBook();
-        log.info("Sending key: {}, value: {}", key, value);
-        kafkaTemplate
-                .sendDefault(key, toJson(value))
-                .addCallback(new SendResultCustomCallback());
-    }
-
-    /**
      * Synchronous approach. Since we are using get() in a Future the thread will wait to complete
      */
     @SuppressWarnings("java:S2142")
@@ -51,6 +39,18 @@ public class LibraryEventProducer {
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
             log.error("Exception in sending message. Message: {}", e.getMessage());
         }
+    }
+
+    /**
+     * Complete Async Approach
+     */
+    public void sendEventAsync(LibraryEvent libraryEvent) {
+        var key = libraryEvent.getEventId();
+        var value = libraryEvent.getBook();
+        log.info("Sending key: {}, value: {}", key, value);
+        kafkaTemplate
+                .sendDefault(key, toJson(value))
+                .addCallback(new SendResultCustomCallback());
     }
 
     private String toJson(Book book) {
