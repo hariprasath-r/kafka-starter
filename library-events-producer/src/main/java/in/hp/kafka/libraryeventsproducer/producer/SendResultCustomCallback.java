@@ -24,9 +24,7 @@ public class SendResultCustomCallback implements ListenableFutureCallback<SendRe
                 var key = producerRecord.key();
                 var value = producerRecord.value();
                 log.info("Message Sent Successfully. Key {}, Value {}, Partition {}", key, value, partition);
-            }, () -> {
-                log.info("Message Sent Successfully to Partition {}.", partition);
-            });
+            }, () -> log.info("Message Sent Successfully to Partition {}.", partition));
         } else {
             log.info("Message Sent Successfully.");
         }
