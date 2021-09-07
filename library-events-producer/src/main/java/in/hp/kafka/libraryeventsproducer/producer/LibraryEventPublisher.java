@@ -2,6 +2,7 @@ package in.hp.kafka.libraryeventsproducer.producer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import in.hp.kafka.libraryeventsproducer.config.KafkaPublishMode;
 import in.hp.kafka.libraryeventsproducer.entity.Book;
 import in.hp.kafka.libraryeventsproducer.entity.LibraryEvent;
 import lombok.extern.log4j.Log4j2;
@@ -20,15 +21,22 @@ import java.util.concurrent.TimeoutException;
 
 @Log4j2
 @Configuration
-public class LibraryEventProducer {
+public class LibraryEventPublisher {
 
+    private final String TOPIC = "library-events";
     @Autowired
     private KafkaTemplate<Integer, String> kafkaTemplate;
-
     @Autowired
     private ObjectMapper objectMapper;
 
-    private final String TOPIC = "library-events";
+    public void sendLibraryEvent(KafkaPublishMode publishMode, LibraryEvent libraryEvent) {
+        log.info("Kafka Publish Mode: {}", publishMode);
+        if (publishMode.equals(KafkaPublishMode.SYNC)) {
+            sendEventSync(libraryEvent);
+        } else {
+            sendEventAsyncV1(libraryEvent);
+        }
+    }
 
     /**
      * Synchronous approach. Since we are using get() in a Future the thread will wait to complete
