@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @Log4j2
 @RestController
 @RequestMapping("/library-events")
@@ -25,6 +27,22 @@ public class LibraryEventController {
 
         log.info("Received data to publish.");
         libraryEvent.setLibraryEventType(LibraryEventType.NEW);
+        libraryEventPublisher.sendLibraryEvent(mode, libraryEvent);
+        log.info("Data published.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
+    }
+
+    @PutMapping("/publish/{mode}")
+    public ResponseEntity<?> updateBook(
+            @PathVariable KafkaPublishMode mode,
+            @RequestBody LibraryEvent libraryEvent) {
+
+        if (Objects.isNull(libraryEvent.getLibraryEventId())) {
+            return ResponseEntity.badRequest().body("Please provide library event id");
+        }
+
+        log.info("Received data to publish.");
+        libraryEvent.setLibraryEventType(LibraryEventType.UPDATE);
         libraryEventPublisher.sendLibraryEvent(mode, libraryEvent);
         log.info("Data published.");
         return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);

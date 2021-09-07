@@ -3,7 +3,6 @@ package in.hp.kafka.libraryeventsproducer.producer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import in.hp.kafka.libraryeventsproducer.config.KafkaPublishMode;
-import in.hp.kafka.libraryeventsproducer.entity.Book;
 import in.hp.kafka.libraryeventsproducer.entity.LibraryEvent;
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -45,12 +44,12 @@ public class LibraryEventPublisher {
      */
     @SuppressWarnings("java:S2142")
     public void sendEventSync(LibraryEvent libraryEvent) {
-        var key = libraryEvent.getEventId();
-        var value = libraryEvent.getBook();
+        var key = libraryEvent.getLibraryEventId();
+        var value = toJson(libraryEvent);
         log.info("Sending key: {}, value: {}", key, value);
         try {
             SendResult<Integer, String> sendResult =
-                    kafkaTemplate.sendDefault(key, toJson(value)).get(1, TimeUnit.SECONDS);
+                    kafkaTemplate.sendDefault(key, value).get(3, TimeUnit.SECONDS);
             log.info("Send Result: {}", sendResult);
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
             log.error("Exception in sending message. Message: {}", e.getMessage());
@@ -61,32 +60,31 @@ public class LibraryEventPublisher {
      * Complete Async Approach
      */
     public void sendEventAsync(LibraryEvent libraryEvent) {
-        var key = libraryEvent.getEventId();
-        var value = libraryEvent.getBook();
+        var key = libraryEvent.getLibraryEventId();
+        var value = toJson(libraryEvent);
         log.info("Sending key: {}, value: {}", key, value);
         kafkaTemplate
-                .sendDefault(key, toJson(value))
+                .sendDefault(key, value)
                 .addCallback(new SendResultCustomCallback());
     }
 
     public void sendEventAsyncV1(LibraryEvent libraryEvent) {
-        var key = libraryEvent.getEventId();
-        var value = libraryEvent.getBook();
-        log.info("Sending key: {}, value: {}", key, value);
+        var key = libraryEvent.getLibraryEventId();
+        log.info("Sending key: {}, value: {}", key, libraryEvent);
         kafkaTemplate
-                .send(buildProducerRecord(key, value))
+                .send(buildProducerRecord(key, libraryEvent))
                 .addCallback(new SendResultCustomCallback());
     }
 
-    private ProducerRecord<Integer, String> buildProducerRecord(Integer key, Book value) {
+    private ProducerRecord<Integer, String> buildProducerRecord(Integer key, Object value) {
         Iterable<Header> headers = List.of(new RecordHeader("event-source", "test-event-source".getBytes()));
         return new ProducerRecord<>(TOPIC, null, key, toJson(value), headers);
     }
 
-    private String toJson(Book book) {
+    private String toJson(Object object) {
         String json = null;
         try {
-            json = objectMapper.writeValueAsString(book);
+            json = objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException ex) {
             log.error("Exception in converting to JSON String: {}", ex.getMessage());
         }
