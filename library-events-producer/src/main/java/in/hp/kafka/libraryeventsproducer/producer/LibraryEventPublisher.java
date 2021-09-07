@@ -24,8 +24,10 @@ import java.util.concurrent.TimeoutException;
 public class LibraryEventPublisher {
 
     private final String TOPIC = "library-events";
+
     @Autowired
     private KafkaTemplate<Integer, String> kafkaTemplate;
+
     @Autowired
     private ObjectMapper objectMapper;
 
