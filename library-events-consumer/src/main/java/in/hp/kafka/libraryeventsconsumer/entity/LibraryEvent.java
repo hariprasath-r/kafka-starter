@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class LibraryEvent {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer libraryEventId;
 
     @Enumerated(EnumType.STRING)
