@@ -12,4 +12,19 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       group-id: library-events-consumer-group
 
+  h2.console.enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    hibernate.ddl-auto: none
+    # hibernate.ddl-auto: create-drop
+  datasource:
+    username: admin
+    password: admin
+    driver-class-name: org.h2.Driver
+    # persistent store
+    # url: jdbc:h2:file:~/data/dump
+    # volatile store
+    url: jdbc:h2:mem:kafka-poc
+
 kafka.topic-id: library-events
