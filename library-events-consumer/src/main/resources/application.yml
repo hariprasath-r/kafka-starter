@@ -1,1 +1,15 @@
+server.port: 8082
 
+spring.profiles.active: local
+
+---
+
+spring:
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:29092, localhost:39092
+      key-deserializer: org.apache.kafka.common.serialization.IntegerDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: library-events-consumer-group
+
+kafka.topic-id: library-events
