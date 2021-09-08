@@ -21,12 +21,12 @@ public class LibraryEventsConsumer {
     private LibraryEventService libraryEventService;
 
     @KafkaListener(topics = {"library-events"})
-    public void consumerMessage(ConsumerRecord<Integer, String> message) {
+    public void consumerMessage(ConsumerRecord<Integer, String> message) throws IllegalAccessException {
         log.info("Message Consumed:: {}", message);
         processLibraryEvent(message);
     }
 
-    private void processLibraryEvent(ConsumerRecord<Integer, String> consumerRecord) {
+    private void processLibraryEvent(ConsumerRecord<Integer, String> consumerRecord) throws IllegalAccessException {
         try {
             var libraryEvent = retrieveLibraryEvent(consumerRecord.value());
             switch (libraryEvent.getLibraryEventType()) {
@@ -34,6 +34,7 @@ public class LibraryEventsConsumer {
                     libraryEventService.addLibraryEvent(libraryEvent);
                     break;
                 case UPDATE:
+                    libraryEventService.updateLibraryEvent(libraryEvent);
                     break;
                 default:
                     log.info("Default case");
