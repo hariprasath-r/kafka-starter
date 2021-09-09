@@ -1,6 +1,7 @@
 package in.hp.kafka.libraryeventsconsumer.config;
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerContainerFactoryConfigurer;
@@ -52,6 +53,29 @@ public class LibraryEventsConsumerConfig {
 
         // adding retries
         factory.setRetryTemplate(getRetryTemplate());
+
+        // adding recovery logic
+        factory.setRecoveryCallback(context -> {
+            if (context.getLastThrowable() instanceof RecoverableDataAccessException) {
+                log.info("Message recoverable");
+
+                // context attributes contain lots of data and metadata. Identify the attribute name for the record failed
+                /*Stream.of(context.attributeNames())
+                        .forEach(attributeName -> {
+                            log.info("Attribute Name: {}", attributeName);
+                            log.info("Attribute Value: {}", context.getAttribute(attributeName));
+                        });*/
+
+                // identified as attribute name "record" using the above logic
+                ConsumerRecord<Integer, String> record = (ConsumerRecord<Integer, String>) context.getAttribute("record");
+
+                // publish the record again to the topic as a method to recover
+            } else {
+                log.info("Message not recoverable");
+                throw new RuntimeException(context.getLastThrowable().getMessage());
+            }
+            return null;
+        });
 
         return factory;
     }
