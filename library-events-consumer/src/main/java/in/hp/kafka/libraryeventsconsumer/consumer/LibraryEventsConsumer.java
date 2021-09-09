@@ -7,6 +7,7 @@ import in.hp.kafka.libraryeventsconsumer.service.LibraryEventService;
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,10 @@ public class LibraryEventsConsumer {
     private void processLibraryEvent(ConsumerRecord<Integer, String> consumerRecord) throws IllegalAccessException {
         try {
             var libraryEvent = retrieveLibraryEvent(consumerRecord.value());
+
+            // manually throwing an exception to showcase retry logic based on selected exception
+            checkAndThrowException(libraryEvent);
+
             switch (libraryEvent.getLibraryEventType()) {
                 case NEW:
                     libraryEventService.addLibraryEvent(libraryEvent);
@@ -41,6 +46,12 @@ public class LibraryEventsConsumer {
             }
         } catch (JsonProcessingException ex) {
             log.error("Error Parsing Library Event from Consumer Record");
+        }
+    }
+
+    private void checkAndThrowException(LibraryEvent libraryEvent) {
+        if (libraryEvent.getLibraryEventId() <= 0) {
+            throw new RecoverableDataAccessException("Recoverable Exception Showcase");
         }
     }
 
