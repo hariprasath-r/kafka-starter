@@ -20,6 +20,7 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Log4j2
 @Configuration
@@ -60,15 +61,16 @@ public class LibraryEventsConsumerConfig {
                 log.info("Message recoverable");
 
                 // context attributes contain lots of data and metadata. Identify the attribute name for the record failed
-                /*Stream.of(context.attributeNames())
+                Stream.of(context.attributeNames())
                         .forEach(attributeName -> {
                             log.info("Attribute Name: {}", attributeName);
                             log.info("Attribute Value: {}", context.getAttribute(attributeName));
-                        });*/
+                        });
 
                 // identified as attribute name "record" using the above logic
-                ConsumerRecord<Integer, String> record = (ConsumerRecord<Integer, String>) context.getAttribute("record");
-
+                ConsumerRecord<Integer, String> failedRecord =
+                        (ConsumerRecord<Integer, String>) context.getAttribute("record");
+                log.info("The failed record:: {}", failedRecord);
                 // publish the record again to the topic as a method to recover
             } else {
                 log.info("Message not recoverable");
@@ -111,7 +113,7 @@ public class LibraryEventsConsumerConfig {
      */
     private BackOffPolicy getBackOffPolicy() {
         FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-        fixedBackOffPolicy.setBackOffPeriod(1000);
+        fixedBackOffPolicy.setBackOffPeriod(2000);
         return fixedBackOffPolicy;
     }
 }

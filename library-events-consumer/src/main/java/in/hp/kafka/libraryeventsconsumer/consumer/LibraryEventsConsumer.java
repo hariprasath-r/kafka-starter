@@ -31,14 +31,14 @@ public class LibraryEventsConsumer {
         try {
             var libraryEvent = retrieveLibraryEvent(consumerRecord.value());
 
-            // manually throwing an exception to showcase retry logic based on selected exception
-            checkAndThrowException(libraryEvent);
-
             switch (libraryEvent.getLibraryEventType()) {
                 case NEW:
                     libraryEventService.addLibraryEvent(libraryEvent);
                     break;
                 case UPDATE:
+                    // manually throwing an exception to showcase retry logic based on selected exception
+                    checkAndThrowException(libraryEvent);
+
                     libraryEventService.updateLibraryEvent(libraryEvent);
                     break;
                 default:
